@@ -8,10 +8,12 @@ services:
       - cluster.name=fastcampus
       - discovery.type=single-node
     ports:
-      - 9200:9200
-      - 9300:9300
+      - "9200:9200"
+      - "9300:9300"
     networks:
       - es-bridge
+    volumes:
+      -
 networks:
   es-bridge:
     driver: bridge
