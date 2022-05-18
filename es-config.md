@@ -79,5 +79,74 @@ discovery.seed_hosts
 - Clustering 을 위한 노드 목록 작성
 - 이전 unicast 설정과 유사
 
+---
+
+### Heep 설정
+
+ES 는 JVM 위에서 동작 하기 때문에 실행 시 Heep 설정
+이 경우, 시스템 메모리를 전용으로 안정적으로 사용하기 위해 아래와 같이 설정
+
+- bootstrap.memory_lock: true
+    - ES 사이즈를 전역으로 구성
+    - 실제 메모리 사이즈의 절반 31기가바이트 이상 설정X
+- http.port: HTTP 와 Transport 통신 둘 다 지원
+    - 노드간 통신은 transport 통신을 위한 port 설정과 content 전송은 compression 설정
+    - 기본 9200 포트
+- RESTful API 요청 시 실제 저장된 문서의 크기가 클 경우
+    - 100MB (body) 넘어가는 경우 크기를 적당히 조절
+    - 압축 전송을 활용하는것이 좋음 !
+        - 네트워크의 bandwidth 를 다 잡아먹을 수 있음
+
+- http.max_initial_line_length : HTTP URL 의 최대 크기 (4KB)
+- http.max_header_size : 허용 하는 최대 Header 크기 (8KB)
+- http.compression
+    - 기본 false 이지만 true 로설정 추천
+    - B2C 형 서비스인 경우 API gateway 를 별도로 두기 때문에 true 설정해서 network 병목을 최소화 할 수 있다.
+- http.compression_level: 기본 3 (CPU 자원에 대한 소비가 많을 수 있기에 기본 설정 궎장)
+- http.cors.enabled
+    - 기본 false 설정
+    - ES 로의 요청에 대한 origin 점검 가능
+    - true 로 설정시 허용할 origin 등록
+- http.cors.allow-origin
+    - 요청에 대해 허용할 origin 등록 (정규 표현식으로 등록 가능)
+    - 요청시 header 에 origin 정보를 담아서 요청해야함
+- transport.port
+    - 기본 9300 으로 통신, 노드간 통신
+- transport.compress: 기본 false 이며 local 통신이 기본이라 false 를 권장
+
+----
+
+### discovery 설정: 클러스터 구성시, 각 노드를 발견하고 합류 시키기 위한 설정
+
+### gateway: 실행 이후 또는 클러스터 재시작 시 운영해야 하는 설정
+
+gateway.expected_data_nodes
+
+- 클러스터가 재시작 될 때 in-service 전에 확인하기 위해 활용
+- 기본 값은 0 이지만 in-service 를 위해 최소 실행된 data node 의 수를 지정하여 사용
+
+gateway.recover_after_data_nodes
+
+- 최소 규모의 데이터 노드가 올라온다음에 recovery(재시작) 하도록 하는 설정
+
+### 인덱스 생성과 삭제에 대한 기본설정
+
+action.auto_create_index
+
+- 기본 true
+- 불필요한 index 생성 방지를 하고 싶다면 이설정 확인
+
+action.destructive_requires_name
+
+- 기본 false
+- 와일드카드로 삭제 요청시 전체 index 가 삭제 될 수 있음 따라서 true 로 설정하는것을 추천
+
+X-pack 관련 기본 설정도 확인해 두면 좋음
+
+xpack.monitoring.collection.enabled
+
+기본 false 로 설정, es 에 대한 모니터링을 하고자 한다면 true 로 설정
+true 설정시 아래와 같은 index 가 생성됨
+monitoring-es-${monitoring.template.version}-{%yyyy.MM.dd}
 
 
